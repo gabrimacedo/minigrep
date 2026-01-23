@@ -36,4 +36,5 @@ fn main() {
     }
 
     dbg!(hits);
+    // TODO: highlight the word that matched
 }

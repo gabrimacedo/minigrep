@@ -21,10 +21,15 @@ fn read_from_file(path: &str, s: &mut String) {
     };
 }
 
+fn read_from_current_dir(_: &mut String) {
+    let dir = env::current_dir().unwrap();
+    println!("current dir is: {}", dir.display());
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    // get pattern
+    // get pattern TODO: handle none
     let pattern = args.get(1).unwrap();
 
     let mut s = String::new();
@@ -33,8 +38,9 @@ fn main() {
     match args.get(2) {
         Some(path) => read_from_file(path, &mut s),
         None => {
-            if let Err(why) = stdin().read_to_string(&mut s) {
-                println!("couldn't read from stdin, {}", why);
+            if stdin().read_to_string(&mut s).unwrap() < 1 {
+                // println!("couldn't read from stdin, {}", why);
+                read_from_current_dir(&mut s);
             }
         }
     }

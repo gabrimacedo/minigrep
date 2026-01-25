@@ -1,16 +1,11 @@
-use std::{env, fs::File, io::Read, path::Path};
+use std::{
+    env,
+    fs::File,
+    io::{Read, stdin},
+    path::Path,
+};
 
-fn main() {
-    println!("Hello, world!");
-
-    let args: Vec<String> = env::args().collect();
-    dbg!(&args);
-
-    // get pattern
-    let pattern = args.get(1).unwrap();
-    //
-    // get path or use current dir
-    let path = args.get(2).unwrap();
+fn read_from_file(path: &str, s: &mut String) {
     let path = Path::new(path);
     let display = path.display();
 
@@ -21,20 +16,37 @@ fn main() {
     };
 
     // read file
-    let mut s = String::new();
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't open {}: {}", display, why),
-        Ok(_) => println!("file {} read sucessfully!", display),
+    if let Err(why) = file.read_to_string(s) {
+        panic!("couldn't open {}: {}", display, why);
     };
+}
 
-    let mut hits = Vec::new();
-    // search for pattern
-    for line in s.lines() {
-        if line.contains(pattern) {
-            hits.push(line);
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    // get pattern
+    let pattern = args.get(1).unwrap();
+
+    let mut s = String::new();
+
+    // read from file if specified, stdin otherwise, TODO: curr dir otherwsise
+    match args.get(2) {
+        Some(path) => read_from_file(path, &mut s),
+        None => {
+            if let Err(why) = stdin().read_to_string(&mut s) {
+                println!("couldn't read from stdin, {}", why);
+            }
         }
     }
 
-    dbg!(hits);
-    // TODO: highlight the word that matched
+    let red_start = "\x1b[31m";
+    let red_end = "\x1b[0m";
+    // search for pattern
+    for line in s.lines() {
+        if line.contains(pattern) {
+            let colored = line.replace(pattern, format!("{red_start}{pattern}{red_end}").as_str());
+            let trimmed = colored.trim();
+            println!("\t{trimmed}");
+        }
+    }
 }

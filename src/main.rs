@@ -1,8 +1,9 @@
 use std::{
+    collections::VecDeque,
     env,
-    fs::File,
-    io::{IsTerminal, Read, stdin},
-    path::Path,
+    fs::{self, File},
+    io::{self, IsTerminal, Read, stdin},
+    path::{Path, PathBuf},
 };
 
 fn read_from_file(path: &str, s: &mut String) {
@@ -17,13 +18,36 @@ fn read_from_file(path: &str, s: &mut String) {
 
     // read file
     if let Err(why) = file.read_to_string(s) {
-        panic!("couldn't open {}: {}", display, why);
+        println!("couldn't open {}: {}", display, why);
     };
 }
 
-fn read_from_current_dir(_: &mut String) {
-    let dir = env::current_dir().unwrap();
-    println!("current dir is: {}", dir.display());
+fn read_from_dir(s: &mut String) -> io::Result<()> {
+    let dir = env::current_dir()?;
+    let mut queue: VecDeque<PathBuf> = VecDeque::new();
+    queue.push_front(dir);
+
+    // visit a node
+    while let Some(path) = queue.pop_front() {
+        visit_node(&mut queue, path, s)?;
+    }
+
+    Ok(())
+}
+
+fn visit_node(queue: &mut VecDeque<PathBuf>, current: PathBuf, s: &mut String) -> io::Result<()> {
+    for entry in fs::read_dir(current)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            queue.push_back(path);
+            continue;
+        }
+        let path = path.to_str().unwrap();
+        read_from_file(path, s);
+    }
+    Ok(())
 }
 
 fn main() {
@@ -39,7 +63,7 @@ fn main() {
         Some(path) => read_from_file(path, &mut s),
         None => {
             if stdin().is_terminal() {
-                read_from_current_dir(&mut s);
+                let _ = read_from_dir(&mut s);
             } else {
                 let sin = stdin().read_to_string(&mut s).unwrap();
                 println!("copied {} bytes", sin);

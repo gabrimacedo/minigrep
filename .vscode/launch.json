@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "codelldb",
+      "request": "launch",
+      "name": "Debug with Args",
+      "program": "target/debug/minigrep",
+      "args": ["he"],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

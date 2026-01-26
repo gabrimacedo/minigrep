@@ -1,7 +1,7 @@
 use std::{
     env,
     fs::File,
-    io::{Read, stdin},
+    io::{IsTerminal, Read, stdin},
     path::Path,
 };
 
@@ -38,9 +38,11 @@ fn main() {
     match args.get(2) {
         Some(path) => read_from_file(path, &mut s),
         None => {
-            if stdin().read_to_string(&mut s).unwrap() < 1 {
-                // println!("couldn't read from stdin, {}", why);
+            if stdin().is_terminal() {
                 read_from_current_dir(&mut s);
+            } else {
+                let sin = stdin().read_to_string(&mut s).unwrap();
+                println!("copied {} bytes", sin);
             }
         }
     }

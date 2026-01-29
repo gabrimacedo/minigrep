@@ -52,16 +52,22 @@ mod test {
 
     #[test]
     fn src_is_file() {
+        // arrange
         let dir = temp_dir();
         let file = dir.as_path().join("test.txt");
         let a = args(&["minigrep", "find this", file.to_str().unwrap()]);
+
+        // act
         let config = Config::build(&a, false).unwrap();
 
+        // asert
         assert_eq!("find this", config.pattern);
         assert_eq!(Source::File(file.clone()), config.source);
 
+        // act
         let config = Config::build(&a, true).unwrap();
 
+        // assert
         assert_eq!("find this", config.pattern);
         assert_eq!(Source::File(file), config.source)
     }
@@ -70,38 +76,28 @@ mod test {
     fn src_is_directory() {
         // NO STDIN AND DIR PATH
         let dir = temp_dir();
-        let path = dir.into_os_string().into_string().unwrap();
-        let args = [
-            String::from("minigrep"),
-            String::from("find this"),
-            path.clone(),
-        ];
-        let config = Config::build(&args, false).unwrap();
+        let path = dir.as_os_str().to_str().unwrap();
+        let a = args(&["minigrep", "find this", path]);
+
+        let config = Config::build(&a, false).unwrap();
 
         assert_eq!("find this", config.pattern);
-        assert_eq!(
-            Source::Directory(PathBuf::from(path.clone())),
-            config.source
-        );
+        assert_eq!(Source::Directory(PathBuf::from(path)), config.source);
 
         // STDIN AND DIR PATH
-        let config = Config::build(&args, true).unwrap();
+        let config = Config::build(&a, true).unwrap();
 
         assert_eq!("find this", config.pattern);
-        assert_eq!(
-            Source::Directory(PathBuf::from(path.clone())),
-            config.source
-        );
+        assert_eq!(Source::Directory(PathBuf::from(path)), config.source);
     }
 
     #[test]
     fn src_is_stdin() {
         // no path or file argument
-        let args = [String::from("minigrep"), String::from("he")];
-        let has_sdtin = true;
-        let config = Config::build(&args, has_sdtin).unwrap();
+        let a = args(&["minigrep", "find this"]);
+        let config = Config::build(&a, true).unwrap();
 
-        assert_eq!("he", config.pattern);
+        assert_eq!("find this", config.pattern);
         assert_eq!(Source::Stdin, config.source);
     }
 
@@ -109,8 +105,8 @@ mod test {
     fn fall_back_source() {
         // STDIN AND NO PATH ARGUMENT
         let curr_dir = env::current_dir().unwrap();
-        let args = [String::from("minigrep"), String::from("find this")];
-        let config = Config::build(&args, false).unwrap();
+        let a = args(&["minigrep", "find this"]);
+        let config = Config::build(&a, false).unwrap();
 
         assert_eq!("find this", config.pattern);
         assert_eq!(Source::Directory(curr_dir), config.source)

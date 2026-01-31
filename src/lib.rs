@@ -34,7 +34,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn print_hits(hits: &[String], pattern: &str) {
+fn print_hits(hits: &[&str], pattern: &str) {
     let red_start = "\x1b[31m";
     let green_start = "\x1b[32m";
     let color_end = "\x1b[0m";
@@ -47,7 +47,7 @@ fn print_hits(hits: &[String], pattern: &str) {
     }
 }
 
-fn find_hits(s: &str, pattern: &str) -> Option<Vec<String>> {
+fn find_hits<'a>(s: &'a str, pattern: &str) -> Option<Vec<&'a str>> {
     if pattern.is_empty() || s.is_empty() {
         return None;
     }
@@ -56,7 +56,7 @@ fn find_hits(s: &str, pattern: &str) -> Option<Vec<String>> {
 
     for line in s.lines() {
         if line.contains(pattern) {
-            hits.push(line.trim().to_owned());
+            hits.push(line);
         }
     }
 

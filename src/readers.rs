@@ -53,3 +53,29 @@ fn visit_node(queue: &mut VecDeque<PathBuf>, current: PathBuf, s: &mut String) -
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use std::{env::temp_dir, fs};
+
+    use crate::readers::read_from_file;
+
+    #[test]
+    fn read_to_file_sucessfully() {
+        // arrange
+        let mut str = String::new();
+        let path = temp_dir();
+        let file = path.join("test.txt");
+        let _ = fs::write(
+            &file,
+            "Hey, this is a test string for a test file for a test!",
+        );
+
+        // act
+        let _ = read_from_file(path, &mut str);
+        let x = fs::read_to_string(file);
+
+        // assert
+        assert!(x.unwrap().contains(&str));
+    }
+}
